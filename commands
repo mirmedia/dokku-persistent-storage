@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+
+if [[ $1 == persistent:* ]]; then
+
+  if [[ -z $2 ]]; then
+    echo "You must specify an app name"
+    exit 1
+  else
+    APP="$2"
+
+    if [[ ! -d "$DOKKU_ROOT/$APP" ]]; then
+      echo "$APP does not exist."
+      exit 1
+    fi
+
+  fi
+
+  HOST_PATH="$DOKKU_ROOT/$APP/persistent"
+  ENVVAR="PERSISTENT_FOLDER"
+  CONTAINER_PATH="/app/persistent"
+fi
+
+case "$1" in
+  persistent:create)
+    if [[ -d $HOST_PATH ]]; then
+      echo "-----> Static Folder for $APP already created."
+      exit 1
+    fi
+
+    echo "-----> Creating Static Folder for $APP."
+    mkdir -p $HOST_PATH
+    echo "$HOST_PATH:$CONTAINER_PATH" > "$DOKKU_ROOT/$APP/PERSISTENT_STORAGE"
+    echo "-----> Setting env var $ENVVAR to the mapped folder."
+    dokku config:set "$APP" $ENVVAR=$CONTAINER_PATH
+    ;;
+  persistent:delete)
+    echo "-----> Deleting Static Folder for $APP."
+    rm -r $HOST_PATH
+    dokku config:unset "$APP" $ENVVAR
+    ;;
+  help)
+    cat && cat<<EOF
+    persistent:create <app>                         Creates a Persistent Folder for <app>.
+    persistent:delete <app>                         Deletes the Persistent Folder of <app>.
+EOF
+    ;;
+
+esac
