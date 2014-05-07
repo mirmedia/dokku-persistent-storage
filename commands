@@ -16,23 +16,33 @@ if [[ $1 == persistent:* ]]; then
 
   fi
 
-  HOST_PATH="$DOKKU_ROOT/$APP/persistent"
+  HOST_PATH_BASE="$DOKKU_ROOT/$APP/persistent"
   ENVVAR="PERSISTENT_FOLDER"
-  CONTAINER_PATH="/app/persistent"
+  CONTAINER_PATH_BASE="/app"
+
+  if [[ -z $3 ]]; then
+    HOST_PATH=$HOST_PATH_BASE
+    CONTAINER_PATH=$CONTAINER_PATH_BASE/persistent
+  else
+    HOST_PATH=$HOST_PATH_BASE/$3
+    CONTAINER_PATH=$CONTAINER_PATH_BASE/$3
+  fi
 fi
 
 case "$1" in
   persistent:create)
     if [[ -d $HOST_PATH ]]; then
-      echo "-----> Static Folder for $APP already created."
+      echo "-----> Static Folder $HOST_PATH for $APP already created."
       exit 1
     fi
 
-    echo "-----> Creating Static Folder for $APP."
+    echo "-----> Creating Static Folder $HOST_PATH for $APP."
     mkdir -p $HOST_PATH
     echo "$HOST_PATH:$CONTAINER_PATH" > "$DOKKU_ROOT/$APP/PERSISTENT_STORAGE"
-    echo "-----> Setting env var $ENVVAR to the mapped folder."
-    dokku config:set "$APP" $ENVVAR=$CONTAINER_PATH
+    if [[ -z $3 ]]; then
+      echo "-----> Setting env var $ENVVAR to the mapped folder."
+      dokku config:set "$APP" $ENVVAR=$CONTAINER_PATH
+    fi
     ;;
   persistent:delete)
     echo "-----> Deleting Static Folder for $APP."
