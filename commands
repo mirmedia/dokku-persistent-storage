@@ -38,7 +38,7 @@ case "$1" in
 
     echo "-----> Creating Static Folder $HOST_PATH for $APP."
     mkdir -p $HOST_PATH
-    echo "$HOST_PATH:$CONTAINER_PATH" > "$DOKKU_ROOT/$APP/PERSISTENT_STORAGE"
+    echo "$HOST_PATH:$CONTAINER_PATH" >> "$DOKKU_ROOT/$APP/PERSISTENT_STORAGE"
     if [[ -z $3 ]]; then
       echo "-----> Setting env var $ENVVAR to the mapped folder."
       dokku config:set "$APP" $ENVVAR=$CONTAINER_PATH
